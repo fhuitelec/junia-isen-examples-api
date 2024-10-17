@@ -36,7 +36,7 @@ jobs:
 
 
   build_docker_image:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,14 +45,13 @@ jobs:
           python-version: "3.12"
       - uses: yezz123/setup-uv@v4
       - run: uv sync
-      # Ajoute ici les étapes spécifiques pour le build après la fusion
       - name: Build Project
         run: |
           echo "Building the project after merge"
           uv build
   
   deploy_service_on_azure:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +60,6 @@ jobs:
           python-version: "3.12"
       - uses: yezz123/setup-uv@v4
       - run: uv sync
-      # Ajoute ici les étapes spécifiques pour le build après la fusion
       - name: Build Project
         run: |
           echo "Building the project after merge"
