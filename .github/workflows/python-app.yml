@@ -2,41 +2,32 @@ name: Cloud_Computing_Project
 
 on:
   pull_request:
-    # We're going to use a "dev" branch for development. It's like a staging environment.
     branches: [ "main", "dev" ]
-  push:
-    branches: [ "main" ]
+    types: [opened, synchronize, closed]
 
 permissions:
   contents: read
 
 jobs:
   check_service:
-    if: github.event_name == 'pull_request'
+    if: github.event.action != 'closed'  # Exécute ce job seulement à l'ouverture/mise à jour de la PR
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: "3.12"
-        ## Found this repo for the setup-uv action:
-        ## Giving you the link to the repo if you wanna see it:
       - uses: yezz123/setup-uv@v4
       - run: uv --version
       - name: Install dependencies
         run: uv sync
       - name: Build Project
         run: uv build
-      # - name: Check lint with flake8 (equivalent to eslint for python)
-      #   run: |
-      #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-      #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Running unit tests
         run: uv run pytest tests/
 
-
   build_docker_image:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true  # Exécute ce job seulement si la PR est fusionnée
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,13 +36,12 @@ jobs:
           python-version: "3.12"
       - uses: yezz123/setup-uv@v4
       - run: uv sync
-      - name: Build Project
+      - name: Build Docker Image
         run: |
-          echo "Building the project after merge"
-          uv build
-  
+          echo "Building Docker image after PR merge"
+
   deploy_service_on_azure:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true  # Exécute ce job seulement si la PR est fusionnée
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +50,6 @@ jobs:
           python-version: "3.12"
       - uses: yezz123/setup-uv@v4
       - run: uv sync
-      - name: Build Project
+      - name: Deploy Service on Azure
         run: |
-          echo "Building the project after merge"
-          uv build
+          echo "Deploying service on Azure after PR merge"
