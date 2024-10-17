@@ -3,14 +3,15 @@ name: Cloud_Computing_Project
 on:
   pull_request:
     branches: [ "main", "dev" ]
-    types: [opened, synchronize, closed]
+  push:
+    branches: [ "main", "dev" ]
 
 permissions:
   contents: read
 
 jobs:
   check_service:
-    if: github.event.action != 'closed'  # Exécute ce job seulement à l'ouverture/mise à jour de la PR
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,7 +28,7 @@ jobs:
         run: uv run pytest tests/
 
   build_docker_image:
-    if: github.event.pull_request.merged == true  # Exécute ce job seulement si la PR est fusionnée
+    if: ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +42,7 @@ jobs:
           echo "Building Docker image after PR merge"
 
   deploy_service_on_azure:
-    if: github.event.pull_request.merged == true  # Exécute ce job seulement si la PR est fusionnée
+    if: ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
