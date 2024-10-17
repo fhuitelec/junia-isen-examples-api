@@ -1,38 +1,68 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Python application
+name: Cloud_Computing_Project
 
 on:
+  pull_request:
+    # We're going to use a "dev" branch for development. It's like a staging environment.
+    branches: [ "main", "dev" ]
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main", "dev" ]
 
 permissions:
   contents: read
 
 jobs:
-  build:
-
+  check_service:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
-      with:
-        python-version: "3.12"
-    - uses: yezz123/setup-uv@v4
-    - run: uv --version
-    - name: Install dependencies
-      run: |
-        uv sync
-    # - name: Lint with flake8
-    #   run: |
-    #     # stop the build if there are Python syntax errors or undefined names
-    #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-    #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-    #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-        uv run pytest tests/
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+        ## Found this repo for the setup-uv action:
+        ## Giving you the link to the repo if you wanna see it:
+      - uses: yezz123/setup-uv@v4
+      - run: uv --version
+      - name: Install dependencies
+        run: uv sync
+      - name: Build Project
+        run: uv build
+      # - name: Check lint with flake8 (equivalent to eslint for python)
+      #   run: |
+      #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Running unit tests
+        run: uv run pytest tests/
+
+
+  build_docker_image:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - uses: yezz123/setup-uv@v4
+      - run: uv sync
+      # Ajoute ici les étapes spécifiques pour le build après la fusion
+      - name: Build Project
+        run: |
+          echo "Building the project after merge"
+          uv build
+  
+  deploy_service_on_azure:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - uses: yezz123/setup-uv@v4
+      - run: uv sync
+      # Ajoute ici les étapes spécifiques pour le build après la fusion
+      - name: Build Project
+        run: |
+          echo "Building the project after merge"
+          uv build
